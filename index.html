@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Finance Manager" />
+  <meta name="description" content="Monatliche Einnahmen und Ausgabenkategorien mit Jahreszielen verwalten" />
+  <title>Finance Manager</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── Header ─────────────────────────────────────────────────────────── -->
+  <header id="header">
+    <button class="header-toggle" onclick="toggleSidebar()" title="Sidebar ein-/ausblenden">☰</button>
+    <h1>💰 Finance Manager</h1>
+    <div class="header-right">
+      <select id="year-select" onchange="onYearChange(this.value)" title="Jahr auswählen"></select>
+      <button class="btn-add-month" onclick="openAddMonth()">+ Monat</button>
+    </div>
+  </header>
+
+  <!-- ── Sidebar ────────────────────────────────────────────────────────── -->
+  <nav id="sidebar">
+    <ul id="sidebar-list"></ul>
+  </nav>
+
+  <!-- ── Main ───────────────────────────────────────────────────────────── -->
+  <main id="main-content"></main>
+
+</div>
+
+<!-- ── Add Month Modal ──────────────────────────────────────────────────── -->
+<div id="modal-overlay" class="hidden" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <h2>Monat hinzufügen</h2>
+    <div class="modal-grid">
+      <label class="field-group">
+        <span class="field-label">Jahr</span>
+        <select id="modal-year">
+          <!-- filled by JS -->
+        </select>
+      </label>
+      <label class="field-group">
+        <span class="field-label">Monat</span>
+        <select id="modal-month">
+          <option value="1">Januar</option>
+          <option value="2">Februar</option>
+          <option value="3">März</option>
+          <option value="4">April</option>
+          <option value="5">Mai</option>
+          <option value="6">Juni</option>
+          <option value="7">Juli</option>
+          <option value="8">August</option>
+          <option value="9">September</option>
+          <option value="10">Oktober</option>
+          <option value="11">November</option>
+          <option value="12">Dezember</option>
+        </select>
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Abbrechen</button>
+      <button class="btn btn-primary" onclick="confirmAddMonth()">Hinzufügen</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Populate year select in modal
+  const modalYear = document.getElementById('modal-year');
+  for (let y = 2020; y <= 2030; y++) {
+    const opt = document.createElement('option');
+    opt.value = y;
+    opt.textContent = y;
+    if (y === new Date().getFullYear()) opt.selected = true;
+    modalYear.appendChild(opt);
+  }
+</script>
+
+<script src="js/store.js"></script>
+<script src="js/views.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>

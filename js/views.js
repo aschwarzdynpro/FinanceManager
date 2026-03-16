@@ -1,0 +1,277 @@
+'use strict';
+
+// ─── Dashboard View ──────────────────────────────────────────────────────────
+
+function renderDashboard(year) {
+  const entries  = store.entriesForYear(year);
+  const totalIncome  = store.annualIncome(year);
+  const totalPlanned = entries.reduce((s,e) => s + e.allocations.reduce((ss,a) => ss + (a.planned||0), 0), 0);
+  const totalActual  = entries.reduce((s,e) => s + e.allocations.reduce((ss,a) => ss + (a.actual||0), 0), 0);
+
+  return `
+    <div class="view-header">
+      <h1>Übersicht ${year}</h1>
+    </div>
+
+    <div class="summary-banner">
+      <div class="summary-item">
+        <span class="summary-label">Einnahmen</span>
+        <span class="summary-value">${fmt(totalIncome)}</span>
+      </div>
+      <div class="summary-divider"></div>
+      <div class="summary-item">
+        <span class="summary-label">Geplant</span>
+        <span class="summary-value">${fmt(totalPlanned)}</span>
+      </div>
+      <div class="summary-divider"></div>
+      <div class="summary-item">
+        <span class="summary-label">Tatsächlich</span>
+        <span class="summary-value">${fmt(totalActual)}</span>
+      </div>
+    </div>
+
+    <div class="card-grid">
+      ${CATEGORIES.map(cat => renderCategoryCard(year, cat)).join('')}
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">Monatliche Einnahmen</h2>
+      ${renderIncomeChart(year, entries)}
+    </div>
+  `;
+}
+
+function renderCategoryCard(year, cat) {
+  const actual  = store.annualTotal(year, cat.id, 'actual');
+  const planned = store.annualTotal(year, cat.id, 'planned');
+  const goal    = store.getGoal(year, cat.id);
+  const progress = goal > 0 ? Math.min(actual / goal, 1) : 0;
+  const pct      = Math.round(progress * 100);
+
+  return `
+    <div class="card category-card">
+      <div class="cat-card-header">
+        <span class="cat-icon">${cat.icon}</span>
+        <span class="cat-label">${cat.label}</span>
+        ${goal > 0 ? `<span class="cat-pct" style="color:${cat.color}">${pct}%</span>` : ''}
+      </div>
+
+      ${goal > 0 ? `
+        <div class="progress-track">
+          <div class="progress-fill" style="width:${pct}%;background:${cat.color}"></div>
+        </div>
+        <div class="cat-amounts">
+          <span style="color:${cat.color};font-weight:600">${fmt(actual)}</span>
+          <span class="muted">/ ${fmt(goal)}</span>
+        </div>
+        <div class="cat-sub">
+          <span class="muted small">Geplant: ${fmt(planned)}</span>
+          <span class="muted small">Verbleibend: ${fmt(Math.max(goal - actual, 0))}</span>
+        </div>
+      ` : `
+        <div class="cat-amounts">
+          <span style="color:${cat.color};font-weight:600">${fmt(actual)}</span>
+        </div>
+        <div class="cat-sub">
+          <span class="muted small">Geplant: ${fmt(planned)}</span>
+          <span class="muted small">Kein Jahresziel</span>
+        </div>
+      `}
+    </div>
+  `;
+}
+
+function renderIncomeChart(year, entries) {
+  if (!entries.length) return '<p class="muted">Noch keine Daten.</p>';
+  const max = Math.max(...entries.map(e => e.income), 1);
+  return `
+    <div class="bar-chart">
+      ${entries.map(e => {
+        const pct = max > 0 ? (e.income / max * 100) : 0;
+        return `
+          <div class="bar-row">
+            <span class="bar-label">${MONTH_NAMES[e.month-1].slice(0,3)}</span>
+            <div class="bar-track">
+              <div class="bar-fill" style="width:${pct}%"></div>
+            </div>
+            <span class="bar-value">${fmt(e.income)}</span>
+          </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ─── Monthly Detail View ──────────────────────────────────────────────────────
+
+function renderMonthly(year, month) {
+  const entry = store.getEntry(year, month) || store._newEntry(year, month);
+  const remaining = (entry.income||0) - entry.allocations.reduce((s,a)=>s+(a.planned||0),0);
+  const remClass  = remaining >= 0 ? 'positive' : 'negative';
+
+  return `
+    <div class="view-header">
+      <h1>${MONTH_NAMES[month-1]} ${year}</h1>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">Einnahmen</h2>
+      <div class="income-row">
+        <span class="income-icon">💶</span>
+        <input class="income-input" type="text" inputmode="decimal"
+               placeholder="0,00" value="${entry.income ? fmtInput(entry.income) : ''}"
+               data-field="income" />
+        <span class="income-currency">€</span>
+      </div>
+    </div>
+
+    <div class="allocations-grid">
+      ${CATEGORIES.map(cat => {
+        const alloc = entry.allocations.find(a => a.categoryId === cat.id)
+          || { categoryId: cat.id, planned: 0, actual: 0 };
+        const goal       = store.getGoal(year, cat.id);
+        const annActual  = store.annualTotal(year, cat.id, 'actual');
+        const annPct     = goal > 0 ? Math.min(annActual / goal * 100, 100) : 0;
+        const diff       = (alloc.planned||0) - (alloc.actual||0);
+
+        return `
+          <div class="card alloc-card" data-cat="${cat.id}">
+            <div class="alloc-header">
+              <span class="cat-icon">${cat.icon}</span>
+              <div class="alloc-title">
+                <span class="cat-label">${cat.label}</span>
+                ${goal > 0 ? `<span class="muted small">Jahresfortschritt: ${fmt(annActual)} / ${fmt(goal)}</span>` : ''}
+              </div>
+              <span class="alloc-planned" style="color:${cat.color}">${fmt(alloc.planned)}</span>
+            </div>
+
+            ${goal > 0 ? `
+              <div class="progress-track" style="margin:8px 0">
+                <div class="progress-fill" style="width:${annPct.toFixed(1)}%;background:${cat.color}"></div>
+              </div>` : ''}
+
+            <div class="alloc-fields">
+              <label class="field-group">
+                <span class="field-label">Geplant (€)</span>
+                <input type="text" inputmode="decimal" placeholder="0,00"
+                       value="${alloc.planned ? fmtInput(alloc.planned) : ''}"
+                       data-cat="${cat.id}" data-field="planned" class="alloc-input" />
+              </label>
+              <label class="field-group">
+                <span class="field-label">Tatsächlich (€)</span>
+                <input type="text" inputmode="decimal" placeholder="0,00"
+                       value="${alloc.actual ? fmtInput(alloc.actual) : ''}"
+                       data-cat="${cat.id}" data-field="actual" class="alloc-input" />
+              </label>
+            </div>
+
+            ${alloc.actual > 0 ? `
+              <div class="alloc-diff ${diff >= 0 ? 'positive' : 'negative'}">
+                Differenz: ${fmt(diff)}
+              </div>` : ''}
+          </div>`;
+      }).join('')}
+    </div>
+
+    <div class="card summary-footer ${remClass}">
+      <div class="summary-item">
+        <span class="summary-label">Einnahmen</span>
+        <span class="summary-value">${fmt(entry.income)}</span>
+      </div>
+      <div class="summary-divider"></div>
+      <div class="summary-item">
+        <span class="summary-label">Geplant</span>
+        <span class="summary-value">${fmt(entry.allocations.reduce((s,a)=>s+(a.planned||0),0))}</span>
+      </div>
+      <div class="summary-divider"></div>
+      <div class="summary-item">
+        <span class="summary-label">Verbleibend</span>
+        <span class="summary-value">${fmt(remaining)}</span>
+      </div>
+    </div>
+  `;
+}
+
+// ─── Annual Goals View ────────────────────────────────────────────────────────
+
+function renderGoals(year) {
+  return `
+    <div class="view-header">
+      <h1>Jahresziele ${year}</h1>
+    </div>
+
+    <div class="card goals-header-card">
+      <span class="goals-icon">🎯</span>
+      <p>Lege deine finanziellen Ziele für ${year} fest und verfolge deinen Fortschritt.</p>
+    </div>
+
+    <div class="card-grid">
+      ${CATEGORIES.map(cat => renderGoalCard(year, cat)).join('')}
+    </div>
+
+    <div class="card">
+      <h2 class="section-title">Jahresüberblick ${year}</h2>
+      <div class="goals-table">
+        ${CATEGORIES.map(cat => {
+          const goal    = store.getGoal(year, cat.id);
+          const actual  = store.annualTotal(year, cat.id, 'actual');
+          const planned = store.annualTotal(year, cat.id, 'planned');
+          const pct     = goal > 0 ? Math.min(actual / goal * 100, 100) : 0;
+          return `
+            <div class="goals-row">
+              <div class="goals-row-left">
+                <span class="cat-icon">${cat.icon}</span>
+                <span class="cat-label">${cat.label}</span>
+              </div>
+              <div class="goals-row-right">
+                <span style="color:${cat.color};font-weight:600">${fmt(actual)}</span>
+                ${goal > 0 ? `<span class="muted small">Ziel: ${fmt(goal)}</span>` : ''}
+              </div>
+            </div>
+            ${goal > 0 ? `
+              <div class="progress-track" style="margin:-4px 0 12px 36px">
+                <div class="progress-fill" style="width:${pct.toFixed(1)}%;background:${cat.color}"></div>
+              </div>` : `
+              <div class="goals-sub muted small" style="margin:-4px 0 12px 36px">Geplant: ${fmt(planned)}</div>`}
+          `;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function renderGoalCard(year, cat) {
+  const goal    = store.getGoal(year, cat.id);
+  const actual  = store.annualTotal(year, cat.id, 'actual');
+  const progress = goal > 0 ? Math.min(actual / goal, 1) : 0;
+  const pct      = Math.round(progress * 100);
+
+  return `
+    <div class="card goal-card">
+      <div class="cat-card-header">
+        <span class="cat-icon">${cat.icon}</span>
+        <span class="cat-label">${cat.label}</span>
+      </div>
+      <label class="field-group">
+        <span class="field-label">Jahresziel (€)</span>
+        <input type="text" inputmode="decimal" placeholder="0,00"
+               value="${goal ? fmtInput(goal) : ''}"
+               data-cat="${cat.id}" data-year="${year}" class="goal-input"
+               style="border-color:${cat.color}40" />
+      </label>
+      ${goal > 0 ? `
+        <div class="progress-track" style="margin-top:10px">
+          <div class="progress-fill" style="width:${pct}%;background:${cat.color}"></div>
+        </div>
+        <div class="cat-amounts">
+          <span style="color:${cat.color}">${fmt(actual)}</span>
+          <span class="muted small">${pct}%</span>
+        </div>
+      ` : `<p class="muted small" style="margin-top:8px">Kein Ziel gesetzt</p>`}
+    </div>
+  `;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function fmtInput(val) {
+  return val ? val.toFixed(2).replace('.', ',') : '';
+}

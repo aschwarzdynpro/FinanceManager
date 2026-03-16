@@ -1,46 +1,58 @@
-# Finance Manager – iPad App
+# Finance Manager – Web App
 
-Eine SwiftUI iPad-App zur Verwaltung monatlicher Einnahmen und Ausgabenkategorien mit Jahreszielen.
+Statische Web-App zur Verwaltung monatlicher Einnahmen und Ausgabenkategorien mit Jahreszielen. Optimiert für iPad, läuft auf jedem Browser.
 
 ## Features
 
 - **Monatliche Einnahmen** – Erfasse deine Einnahmen pro Monat
-- **Ausgabenkategorien** – Plane und tracke Ausgaben in 4 Kategorien:
-  - ETF Sparplan
-  - Urlaub
-  - Auto
-  - Aktien
+- **Ausgabenkategorien** mit geplantem und tatsächlichem Betrag:
+  - 📈 ETF Sparplan
+  - ✈️ Urlaub
+  - 🚗 Auto
+  - 💹 Aktien
 - **Jahresziele** – Setze Jahresziele pro Kategorie und verfolge den Fortschritt
-- **Dashboard** – Jahresübersicht mit Fortschrittsbalken und Zusammenfassungen
-- **iPad-optimiertes Layout** – NavigationSplitView mit Sidebar
+- **Dashboard** – Jahresübersicht mit Balkendiagramm und Fortschrittsanzeigen
+- **Datenspeicherung** – Lokal im Browser via `localStorage`, keine Cloud nötig
 
-## Anforderungen
+## Deployment via GitHub Pages
 
-- iOS 17.0+
-- iPad (optimiert für iPadOS)
-- Xcode 15+
+### Option A – Automatisch via GitHub Actions (empfohlen)
 
-## Projekt öffnen
+1. Repository auf GitHub pushen
+2. **Settings → Pages → Source: "GitHub Actions"** auswählen
+3. Bei jedem Push auf `main` wird automatisch deployed
+
+### Option B – Manuell (Branch)
+
+1. **Settings → Pages → Source: "Deploy from a branch"**
+2. Branch: `main`, Folder: `/ (root)` auswählen
+3. Speichern → App ist unter `https://<username>.github.io/<repo>/` erreichbar
+
+## Lokal starten
+
+Da es sich um eine reine statische App handelt, reicht ein einfacher HTTP-Server:
 
 ```bash
-open FinanceManager.xcodeproj
+# Python
+python3 -m http.server 8080
+
+# Node
+npx serve .
 ```
 
-## Architektur
+Dann im Browser: `http://localhost:8080`
+
+## Struktur
 
 ```
-FinanceManager/
-├── FinanceManagerApp.swift       # App Entry Point
-├── ContentView.swift             # NavigationSplitView Root
-├── Models/
-│   └── Models.swift              # Datenmodelle & AppDataStore (UserDefaults)
-└── Views/
-    ├── SidebarView.swift         # Sidebar-Navigation
-    ├── DashboardView.swift       # Jahresübersicht & Kategorie-Karten
-    ├── MonthlyDetailView.swift   # Monats-Detailansicht mit Allokationen
-    └── AnnualGoalsView.swift     # Jahresziele setzen & verfolgen
+/
+├── index.html          # Einstiegspunkt
+├── css/
+│   └── styles.css      # Alle Styles
+├── js/
+│   ├── store.js        # Datenmodell + localStorage
+│   ├── views.js        # View-Rendering (Dashboard, Monthly, Goals)
+│   └── app.js          # Router, Events, Init
+└── .github/workflows/
+    └── deploy.yml      # GitHub Actions Deployment
 ```
-
-## Datenpersistenz
-
-Die App speichert alle Daten lokal mit `UserDefaults` und `Codable`. Keine externe Datenbank erforderlich.
