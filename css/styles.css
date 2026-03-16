@@ -423,7 +423,9 @@ body {
 .goals-sub { padding: 0 0 12px 36px; }
 
 /* ── Modal ───────────────────────────────────────────────────────────────────  */
-#modal-overlay {
+#modal-overlay,
+#cat-modal-overlay,
+#icon-picker-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,.5);
@@ -433,7 +435,9 @@ body {
   z-index: 100;
   backdrop-filter: blur(4px);
 }
-#modal-overlay.hidden { display: none; }
+#modal-overlay.hidden,
+#cat-modal-overlay.hidden,
+#icon-picker-overlay.hidden { display: none; }
 
 .modal {
   background: var(--surface);
