@@ -18,8 +18,9 @@ const MONTH_NAMES = [
 
 class Store {
   constructor() {
-    this._entries = this._load('fm_entries') || [];
-    this._goals   = this._load('fm_goals')   || [];
+    this._entries   = this._load('fm_entries')   || [];
+    this._goals     = this._load('fm_goals')     || [];
+    this._templates = this._load('fm_templates') || {};
     this._ensureCurrentMonth();
   }
 
@@ -30,8 +31,9 @@ class Store {
   }
 
   _save() {
-    localStorage.setItem('fm_entries', JSON.stringify(this._entries));
-    localStorage.setItem('fm_goals',   JSON.stringify(this._goals));
+    localStorage.setItem('fm_entries',   JSON.stringify(this._entries));
+    localStorage.setItem('fm_goals',     JSON.stringify(this._goals));
+    localStorage.setItem('fm_templates', JSON.stringify(this._templates));
   }
 
   _ensureCurrentMonth() {
@@ -51,7 +53,7 @@ class Store {
       notes: '',
       allocations: CATEGORIES.map(c => ({
         categoryId: c.id,
-        planned: 0,
+        planned: this._templates[c.id] || 0,
         actual: 0
       }))
     };
@@ -118,6 +120,15 @@ class Store {
     return this._entries
       .filter(e => e.year === year)
       .sort((a,b) => a.month - b.month);
+  }
+
+  // ── Templates ───────────────────────────────────────────────────────────────
+
+  getTemplates() { return { ...this._templates }; }
+
+  setTemplate(categoryId, amount) {
+    this._templates[categoryId] = amount;
+    this._save();
   }
 }
 

@@ -482,6 +482,37 @@ body {
 .btn-primary { background: var(--accent); color: #fff; }
 .btn-secondary { background: var(--bg); color: var(--text); border: 1px solid var(--border); }
 
+/* ── Templates ───────────────────────────────────────────────────────────────  */
+.templates-info-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #0f766e, #0d9488);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(15,118,110,.3);
+}
+
+.templates-icon { font-size: 2rem; flex-shrink: 0; }
+.templates-info-card p { color: rgba(255,255,255,.9); line-height: 1.5; }
+.templates-info-card strong { color: #fff; }
+
+.template-card { display: flex; flex-direction: column; }
+
+.templates-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+  padding: 14px 20px;
+}
+
+.templates-total {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #0f766e;
+}
+
 /* ── Utilities ───────────────────────────────────────────────────────────────  */
 .muted  { color: var(--text-muted); }
 .small  { font-size: .8rem; }

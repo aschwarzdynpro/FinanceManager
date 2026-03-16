@@ -270,6 +270,59 @@ function renderGoalCard(year, cat) {
   `;
 }
 
+// ─── Templates View ──────────────────────────────────────────────────────────
+
+function renderTemplates() {
+  const templates = store.getTemplates();
+  const totalTemplate = CATEGORIES.reduce((s, c) => s + (templates[c.id] || 0), 0);
+
+  return `
+    <div class="view-header">
+      <h1>Vorlagen</h1>
+    </div>
+
+    <div class="card templates-info-card">
+      <span class="templates-icon">📋</span>
+      <div>
+        <p>Definiere Standardbeträge pro Kategorie.</p>
+        <p class="muted small">Diese Werte werden automatisch als <strong>Geplant</strong> eingetragen, wenn du einen neuen Monat hinzufügst.</p>
+      </div>
+    </div>
+
+    <div class="card-grid">
+      ${CATEGORIES.map(cat => `
+        <div class="card template-card">
+          <div class="cat-card-header">
+            <span class="cat-icon">${cat.icon}</span>
+            <span class="cat-label">${cat.label}</span>
+          </div>
+          <label class="field-group" style="margin-top:10px">
+            <span class="field-label">Monatlicher Standardbetrag (€)</span>
+            <input type="text" inputmode="decimal" placeholder="0,00"
+                   value="${templates[cat.id] ? fmtInput(templates[cat.id]) : ''}"
+                   data-cat="${cat.id}" class="template-input alloc-input"
+                   style="border-color:${cat.color}40" />
+          </label>
+          ${templates[cat.id] ? `
+            <p class="muted small" style="margin-top:6px">
+              = ${fmt(templates[cat.id])} / Monat
+            </p>` : `
+            <p class="muted small" style="margin-top:6px; font-style:italic">
+              Kein Standardbetrag gesetzt
+            </p>`}
+        </div>
+      `).join('')}
+    </div>
+
+    ${totalTemplate > 0 ? `
+      <div class="card templates-summary">
+        <span class="muted small">Gesamt Standardbudget pro Monat</span>
+        <span class="templates-total">${fmt(totalTemplate)}</span>
+      </div>
+    ` : ''}
+  `;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function fmtInput(val) {

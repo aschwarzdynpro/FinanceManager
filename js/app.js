@@ -3,7 +3,7 @@
 // ─── State ───────────────────────────────────────────────────────────────────
 
 const state = {
-  view: 'dashboard',  // 'dashboard' | 'monthly' | 'goals'
+  view: 'dashboard',  // 'dashboard' | 'monthly' | 'goals' | 'templates'
   year: new Date().getFullYear(),
   month: new Date().getMonth() + 1,
   sidebarOpen: true,
@@ -54,6 +54,11 @@ function renderSidebar() {
       <span class="sidebar-icon">🎯</span>
       <span>Jahresziele ${state.year}</span>
     </li>
+    <li class="sidebar-item ${state.view === 'templates' ? 'active' : ''}"
+        onclick="navigate('templates')">
+      <span class="sidebar-icon">📋</span>
+      <span>Vorlagen</span>
+    </li>
     <li class="sidebar-section-header">Monate</li>
   `;
 
@@ -87,6 +92,7 @@ function renderMain() {
   if (state.view === 'dashboard') html = renderDashboard(state.year);
   else if (state.view === 'monthly') html = renderMonthly(state.year, state.month);
   else if (state.view === 'goals') html = renderGoals(state.year);
+  else if (state.view === 'templates') html = renderTemplates();
 
   mainContent().innerHTML = html;
   attachEventListeners();
@@ -130,6 +136,14 @@ function attachEventListeners() {
       const year  = parseInt(input.dataset.year);
       store.setGoal(year, catId, parseAmount(input.value));
       renderAll();
+    });
+  });
+
+  // Template inputs (templates view)
+  document.querySelectorAll('input.template-input').forEach(input => {
+    input.addEventListener('change', () => {
+      store.setTemplate(input.dataset.cat, parseAmount(input.value));
+      renderMain();
     });
   });
 }
