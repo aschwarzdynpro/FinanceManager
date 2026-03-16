@@ -31,7 +31,7 @@ function renderDashboard(year) {
     </div>
 
     <div class="card-grid">
-      ${CATEGORIES.map(cat => renderCategoryCard(year, cat)).join('')}
+      ${store.getCategories().map(cat => renderCategoryCard(year, cat)).join('')}
     </div>
 
     <div class="card">
@@ -124,7 +124,7 @@ function renderMonthly(year, month) {
     </div>
 
     <div class="allocations-grid">
-      ${CATEGORIES.map(cat => {
+      ${store.getCategories().map(cat => {
         const alloc = entry.allocations.find(a => a.categoryId === cat.id)
           || { categoryId: cat.id, planned: 0, actual: 0 };
         const goal       = store.getGoal(year, cat.id);
@@ -204,13 +204,13 @@ function renderGoals(year) {
     </div>
 
     <div class="card-grid">
-      ${CATEGORIES.map(cat => renderGoalCard(year, cat)).join('')}
+      ${store.getCategories().map(cat => renderGoalCard(year, cat)).join('')}
     </div>
 
     <div class="card">
       <h2 class="section-title">Jahresüberblick ${year}</h2>
       <div class="goals-table">
-        ${CATEGORIES.map(cat => {
+        ${store.getCategories().map(cat => {
           const goal    = store.getGoal(year, cat.id);
           const actual  = store.annualTotal(year, cat.id, 'actual');
           const planned = store.annualTotal(year, cat.id, 'planned');
@@ -274,7 +274,7 @@ function renderGoalCard(year, cat) {
 
 function renderTemplates() {
   const templates = store.getTemplates();
-  const totalTemplate = CATEGORIES.reduce((s, c) => s + (templates[c.id] || 0), 0);
+  const totalTemplate = store.getCategories().reduce((s, c) => s + (templates[c.id] || 0), 0);
 
   return `
     <div class="view-header">
@@ -290,7 +290,7 @@ function renderTemplates() {
     </div>
 
     <div class="card-grid">
-      ${CATEGORIES.map(cat => `
+      ${store.getCategories().map(cat => `
         <div class="card template-card">
           <div class="cat-card-header">
             <span class="cat-icon">${cat.icon}</span>
@@ -323,7 +323,74 @@ function renderTemplates() {
   `;
 }
 
+// ─── Category Settings View ───────────────────────────────────────────────────
+
+const ICON_PALETTE = [
+  '💰','💵','💳','📈','📉','🏦','🏠','🚗','✈️','🏖️',
+  '🎓','💊','🛒','🍕','🎮','👕','🏋️','💍','🎁','📱',
+  '💻','🔧','⛽','🚂','🏥','📚','🌱','🐾','🎵','🍷',
+  '☕','🎯','🏆','🎨','🚀','💡','🔑','📷','🌍','🧳',
+];
+
+function renderCategorySettings() {
+  const categories = store.getCategories();
+  return `
+    <div class="view-header">
+      <h1>Kategorien</h1>
+    </div>
+
+    <div class="card cat-settings-info">
+      <span class="templates-icon">⚙️</span>
+      <div>
+        <p>Verwalte deine Ausgabenkategorien.</p>
+        <p class="muted small">Änderungen wirken sich auf neue Monate aus. Bestehende Daten bleiben erhalten.</p>
+      </div>
+    </div>
+
+    <div class="cat-settings-list">
+      ${categories.map(cat => renderCategoryRow(cat)).join('')}
+    </div>
+
+    <button class="btn btn-primary btn-add-cat" onclick="openAddCategoryModal()">
+      + Neue Kategorie
+    </button>
+  `;
+}
+
+function renderCategoryRow(cat) {
+  const inputId = `icon-preview-${cat.id}`;
+  return `
+    <div class="card cat-row" data-cat-id="${cat.id}">
+      <button class="cat-icon-btn" onclick="openIconPicker('${cat.id}','${inputId}')"
+              id="${inputId}" title="Icon ändern">
+        ${cat.icon}
+      </button>
+
+      <input class="cat-label-input alloc-input" type="text"
+             value="${escapeHtml(cat.label)}"
+             placeholder="Name"
+             data-cat-id="${cat.id}" />
+
+      <label class="cat-color-wrap" title="Farbe wählen">
+        <input type="color" class="cat-color-input"
+               value="${cat.color}"
+               data-cat-id="${cat.id}" />
+        <span class="cat-color-swatch" style="background:${cat.color}"></span>
+      </label>
+
+      <button class="btn btn-save-cat" onclick="saveCategoryEdit('${cat.id}')"
+              title="Speichern">✓</button>
+      <button class="cat-delete-btn" onclick="deleteCategory('${cat.id}')"
+              title="Löschen">🗑️</button>
+    </div>
+  `;
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function escapeHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
 function fmtInput(val) {
   return val ? val.toFixed(2).replace('.', ',') : '';

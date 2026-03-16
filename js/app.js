@@ -3,7 +3,7 @@
 // ─── State ───────────────────────────────────────────────────────────────────
 
 const state = {
-  view: 'dashboard',  // 'dashboard' | 'monthly' | 'goals' | 'templates'
+  view: 'dashboard',  // 'dashboard' | 'monthly' | 'goals' | 'templates' | 'categories'
   year: new Date().getFullYear(),
   month: new Date().getMonth() + 1,
   sidebarOpen: true,
@@ -59,6 +59,11 @@ function renderSidebar() {
       <span class="sidebar-icon">📋</span>
       <span>Vorlagen</span>
     </li>
+    <li class="sidebar-item ${state.view === 'categories' ? 'active' : ''}"
+        onclick="navigate('categories')">
+      <span class="sidebar-icon">⚙️</span>
+      <span>Kategorien</span>
+    </li>
     <li class="sidebar-section-header">Monate</li>
   `;
 
@@ -93,6 +98,7 @@ function renderMain() {
   else if (state.view === 'monthly') html = renderMonthly(state.year, state.month);
   else if (state.view === 'goals') html = renderGoals(state.year);
   else if (state.view === 'templates') html = renderTemplates();
+  else if (state.view === 'categories') html = renderCategorySettings();
 
   mainContent().innerHTML = html;
   attachEventListeners();
@@ -106,7 +112,7 @@ function attachEventListeners() {
     input.addEventListener('change', () => {
       const entry = store.getEntry(state.year, state.month)
         || { year: state.year, month: state.month, income: 0, notes: '',
-             allocations: CATEGORIES.map(c=>({categoryId:c.id,planned:0,actual:0})) };
+             allocations: store.getCategories().map(c=>({categoryId:c.id,planned:0,actual:0})) };
       entry.income = parseAmount(input.value);
       store.upsertEntry(entry);
       renderAll();
@@ -187,6 +193,103 @@ function onYearChange(val) {
     if (available.length) state.month = available[0].month;
   }
   renderAll();
+}
+
+// ─── Category Management ──────────────────────────────────────────────────────
+
+function openAddCategoryModal() {
+  document.getElementById('cat-modal-overlay').classList.remove('hidden');
+  document.getElementById('new-cat-label').value = '';
+  document.getElementById('new-cat-color').value = '#6366f1';
+  _selectIconInModal('❓');
+}
+
+function closeAddCategoryModal() {
+  document.getElementById('cat-modal-overlay').classList.add('hidden');
+}
+
+function confirmAddCategory() {
+  const label = document.getElementById('new-cat-label').value.trim();
+  const icon  = document.getElementById('new-cat-icon-preview').textContent.trim();
+  const color = document.getElementById('new-cat-color').value;
+  if (!label) { document.getElementById('new-cat-label').focus(); return; }
+  store.addCategory(label, icon, color);
+  closeAddCategoryModal();
+  renderAll();
+}
+
+function saveCategoryEdit(id) {
+  const row   = document.querySelector(`.cat-row[data-cat-id="${id}"]`);
+  const label = row.querySelector('.cat-label-input').value.trim();
+  const icon  = row.querySelector('.cat-icon-btn').textContent.trim();
+  const color = row.querySelector('.cat-color-input').value;
+  if (!label) return;
+  store.updateCategory(id, label, icon, color);
+  // Update color swatch live
+  row.querySelector('.cat-color-swatch').style.background = color;
+  renderAll();
+}
+
+function deleteCategory(id) {
+  if (!confirm('Kategorie löschen? Bestehende Einträge bleiben erhalten, werden aber nicht mehr angezeigt.')) return;
+  store.deleteCategory(id);
+  renderAll();
+}
+
+// ─── Icon Picker ──────────────────────────────────────────────────────────────
+
+let _iconPickerTargetId = null;
+
+function openIconPicker(catId, btnId) {
+  _iconPickerTargetId = btnId;
+  const overlay = document.getElementById('icon-picker-overlay');
+  overlay.classList.remove('hidden');
+  // Render icon grid
+  const currentIcon = document.getElementById(btnId)?.textContent.trim() || '';
+  document.getElementById('icon-picker-grid').innerHTML =
+    ICON_PALETTE.map(e => `
+      <button class="icon-btn ${e === currentIcon ? 'selected' : ''}"
+              onclick="pickIcon('${e}')">${e}</button>
+    `).join('');
+}
+
+function pickIcon(emoji) {
+  if (_iconPickerTargetId) {
+    const btn = document.getElementById(_iconPickerTargetId);
+    if (btn) btn.textContent = emoji;
+  }
+  document.getElementById('icon-picker-overlay').classList.add('hidden');
+}
+
+function closeIconPicker() {
+  document.getElementById('icon-picker-overlay').classList.add('hidden');
+}
+
+// Icon picker inside the "new category" modal
+function openIconPickerForNew() {
+  const currentIcon = document.getElementById('new-cat-icon-preview').textContent.trim();
+  const overlay = document.getElementById('icon-picker-overlay');
+  _iconPickerTargetId = null; // special case: target is new-cat-icon-preview
+  overlay.classList.remove('hidden');
+  document.getElementById('icon-picker-grid').innerHTML =
+    ICON_PALETTE.map(e => `
+      <button class="icon-btn ${e === currentIcon ? 'selected' : ''}"
+              onclick="pickIconForNew('${e}')">${e}</button>
+    `).join('');
+}
+
+function pickIconForNew(emoji) {
+  document.getElementById('new-cat-icon-preview').textContent = emoji;
+  document.getElementById('icon-picker-overlay').classList.add('hidden');
+}
+
+function _selectIconInModal(emoji) {
+  document.getElementById('new-cat-icon-preview').textContent = emoji;
+}
+
+// Update color swatch live when color input changes
+function onCatColorChange(input, swatchEl) {
+  if (swatchEl) swatchEl.style.background = input.value;
 }
 
 // ─── Init ─────────────────────────────────────────────────────────────────────

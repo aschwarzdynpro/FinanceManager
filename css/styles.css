@@ -513,6 +513,140 @@ body {
   color: #0f766e;
 }
 
+/* ── Category Settings ───────────────────────────────────────────────────────  */
+.cat-settings-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, #4f46e5, #7c3aed);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(79,70,229,.3);
+}
+.cat-settings-info p { color: rgba(255,255,255,.9); line-height: 1.5; }
+
+.cat-settings-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+
+.cat-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+}
+
+.cat-icon-btn {
+  font-size: 1.6rem;
+  background: var(--bg);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  width: 48px; height: 48px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: border-color var(--transition);
+  display: flex; align-items: center; justify-content: center;
+}
+.cat-icon-btn:hover { border-color: var(--accent); }
+
+.cat-label-input {
+  flex: 1;
+  font-size: .95rem;
+}
+
+.cat-color-wrap {
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.cat-color-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  border: none;
+  padding: 0;
+}
+.cat-color-swatch {
+  display: block;
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  transition: border-color var(--transition);
+}
+.cat-color-wrap:hover .cat-color-swatch { border-color: var(--accent); }
+
+.btn-save-cat {
+  background: #22c55e;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity var(--transition);
+}
+.btn-save-cat:hover { opacity: .85; }
+
+.cat-delete-btn {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  opacity: .5;
+  flex-shrink: 0;
+  transition: opacity var(--transition);
+  padding: 4px;
+}
+.cat-delete-btn:hover { opacity: 1; }
+
+.btn-add-cat {
+  width: 100%;
+  padding: 12px;
+  font-size: .95rem;
+}
+
+/* ── New Category Form ───────────────────────────────────────────────────────  */
+.new-cat-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.new-cat-icon-btn {
+  font-size: 1.8rem;
+  width: 56px; height: 56px;
+}
+
+/* ── Icon Picker ─────────────────────────────────────────────────────────────  */
+.icon-picker-modal {
+  width: min(420px, 94vw);
+}
+
+.icon-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.icon-btn {
+  font-size: 1.5rem;
+  background: var(--bg);
+  border: 2px solid transparent;
+  border-radius: 8px;
+  padding: 6px;
+  cursor: pointer;
+  line-height: 1;
+  text-align: center;
+  transition: border-color var(--transition), background var(--transition);
+}
+.icon-btn:hover  { background: var(--border); }
+.icon-btn.selected { border-color: var(--accent); background: #eff6ff; }
+
 /* ── Utilities ───────────────────────────────────────────────────────────────  */
 .muted  { color: var(--text-muted); }
 .small  { font-size: .8rem; }

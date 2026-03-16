@@ -82,6 +82,49 @@
   }
 </script>
 
+<!-- ── Add Category Modal ─────────────────────────────────────────────────── -->
+<div id="cat-modal-overlay" class="hidden" onclick="if(event.target===this)closeAddCategoryModal()">
+  <div class="modal">
+    <h2>Neue Kategorie</h2>
+    <div class="new-cat-form">
+      <label class="field-group">
+        <span class="field-label">Name</span>
+        <input type="text" id="new-cat-label" class="alloc-input" placeholder="z.B. Fitness" />
+      </label>
+
+      <label class="field-group">
+        <span class="field-label">Icon</span>
+        <button class="cat-icon-btn new-cat-icon-btn" id="new-cat-icon-preview"
+                onclick="openIconPickerForNew()">❓</button>
+      </label>
+
+      <label class="field-group">
+        <span class="field-label">Farbe</span>
+        <label class="cat-color-wrap">
+          <input type="color" id="new-cat-color" value="#6366f1"
+                 oninput="document.getElementById('new-cat-color-swatch').style.background=this.value" />
+          <span id="new-cat-color-swatch" class="cat-color-swatch" style="background:#6366f1"></span>
+        </label>
+      </label>
+    </div>
+    <div class="modal-actions" style="margin-top:20px">
+      <button class="btn btn-secondary" onclick="closeAddCategoryModal()">Abbrechen</button>
+      <button class="btn btn-primary" onclick="confirmAddCategory()">Hinzufügen</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Icon Picker Overlay ────────────────────────────────────────────────── -->
+<div id="icon-picker-overlay" class="hidden" onclick="if(event.target===this)closeIconPicker()">
+  <div class="modal icon-picker-modal">
+    <h2>Icon wählen</h2>
+    <div id="icon-picker-grid" class="icon-picker-grid"></div>
+    <div class="modal-actions" style="margin-top:16px">
+      <button class="btn btn-secondary" onclick="closeIconPicker()">Abbrechen</button>
+    </div>
+  </div>
+</div>
+
 <script src="js/store.js"></script>
 <script src="js/views.js"></script>
 <script src="js/app.js"></script>

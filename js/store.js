@@ -2,7 +2,7 @@
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const CATEGORIES = [
+const DEFAULT_CATEGORIES = [
   { id: 'etf',     label: 'ETF Sparplan', icon: '📈', color: '#3b82f6' },
   { id: 'urlaub',  label: 'Urlaub',       icon: '✈️',  color: '#f97316' },
   { id: 'auto',    label: 'Auto',         icon: '🚗',  color: '#ef4444' },
@@ -18,9 +18,10 @@ const MONTH_NAMES = [
 
 class Store {
   constructor() {
-    this._entries   = this._load('fm_entries')   || [];
-    this._goals     = this._load('fm_goals')     || [];
-    this._templates = this._load('fm_templates') || {};
+    this._categories = this._load('fm_categories') || DEFAULT_CATEGORIES;
+    this._entries    = this._load('fm_entries')    || [];
+    this._goals      = this._load('fm_goals')      || [];
+    this._templates  = this._load('fm_templates')  || {};
     this._ensureCurrentMonth();
   }
 
@@ -31,9 +32,10 @@ class Store {
   }
 
   _save() {
-    localStorage.setItem('fm_entries',   JSON.stringify(this._entries));
-    localStorage.setItem('fm_goals',     JSON.stringify(this._goals));
-    localStorage.setItem('fm_templates', JSON.stringify(this._templates));
+    localStorage.setItem('fm_categories', JSON.stringify(this._categories));
+    localStorage.setItem('fm_entries',    JSON.stringify(this._entries));
+    localStorage.setItem('fm_goals',      JSON.stringify(this._goals));
+    localStorage.setItem('fm_templates',  JSON.stringify(this._templates));
   }
 
   _ensureCurrentMonth() {
@@ -51,7 +53,7 @@ class Store {
       year, month,
       income: 0,
       notes: '',
-      allocations: CATEGORIES.map(c => ({
+      allocations: this._categories.map(c => ({
         categoryId: c.id,
         planned: this._templates[c.id] || 0,
         actual: 0
@@ -128,6 +130,27 @@ class Store {
 
   setTemplate(categoryId, amount) {
     this._templates[categoryId] = amount;
+    this._save();
+  }
+
+  // ── Categories ──────────────────────────────────────────────────────────────
+
+  getCategories() { return [...this._categories]; }
+
+  addCategory(label, icon, color) {
+    const id = 'cat_' + Date.now();
+    this._categories.push({ id, label, icon, color });
+    this._save();
+    return id;
+  }
+
+  updateCategory(id, label, icon, color) {
+    const idx = this._categories.findIndex(c => c.id === id);
+    if (idx >= 0) { this._categories[idx] = { id, label, icon, color }; this._save(); }
+  }
+
+  deleteCategory(id) {
+    this._categories = this._categories.filter(c => c.id !== id);
     this._save();
   }
 }
