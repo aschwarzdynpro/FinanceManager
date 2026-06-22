@@ -23,6 +23,12 @@ function navigate(view, year, month) {
   state.year  = year  ?? state.year;
   state.month = month ?? state.month;
   renderAll();
+  closeSidebarOnMobile();
+}
+
+// True when the off-canvas (overlay) sidebar layout is active.
+function isMobileLayout() {
+  return window.matchMedia('(max-width: 768px)').matches;
 }
 
 // ─── Render ───────────────────────────────────────────────────────────────────
@@ -157,9 +163,26 @@ function attachEventListeners() {
 // ─── Sidebar toggle ──────────────────────────────────────────────────────────
 
 function toggleSidebar() {
-  state.sidebarOpen = !state.sidebarOpen;
-  sidebar().classList.toggle('collapsed', !state.sidebarOpen);
-  document.getElementById('app').classList.toggle('sidebar-collapsed', !state.sidebarOpen);
+  const app = document.getElementById('app');
+  if (isMobileLayout()) {
+    // Mobile: slide the off-canvas sidebar in/out as an overlay.
+    state.sidebarOpen = !app.classList.contains('sidebar-open');
+    app.classList.toggle('sidebar-open', state.sidebarOpen);
+  } else {
+    // Desktop/tablet: collapse the docked sidebar column.
+    state.sidebarOpen = app.classList.contains('sidebar-collapsed');
+    app.classList.toggle('sidebar-collapsed', !state.sidebarOpen);
+    sidebar().classList.toggle('collapsed', !state.sidebarOpen);
+  }
+}
+
+function closeSidebar() {
+  document.getElementById('app').classList.remove('sidebar-open');
+  state.sidebarOpen = false;
+}
+
+function closeSidebarOnMobile() {
+  if (isMobileLayout()) closeSidebar();
 }
 
 // ─── Add Month Modal ─────────────────────────────────────────────────────────

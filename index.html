@@ -4,8 +4,11 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Finance Manager" />
+  <meta name="format-detection" content="telephone=no" />
+  <meta name="theme-color" content="#1e2430" />
   <meta name="description" content="Monatliche Einnahmen und Ausgabenkategorien mit Jahreszielen verwalten" />
   <title>Finance Manager</title>
   <link rel="stylesheet" href="css/styles.css" />
@@ -20,7 +23,7 @@
     <h1>💰 Finance Manager</h1>
     <div class="header-right">
       <select id="year-select" onchange="onYearChange(this.value)" title="Jahr auswählen"></select>
-      <button class="btn-add-month" onclick="openAddMonth()">+ Monat</button>
+      <button class="btn-add-month" onclick="openAddMonth()" aria-label="Monat hinzufügen">+<span class="add-month-label"> Monat</span></button>
     </div>
   </header>
 
@@ -28,6 +31,9 @@
   <nav id="sidebar">
     <ul id="sidebar-list"></ul>
   </nav>
+
+  <!-- ── Sidebar backdrop (mobile off-canvas) ───────────────────────────── -->
+  <div id="sidebar-backdrop" onclick="closeSidebar()"></div>
 
   <!-- ── Main ───────────────────────────────────────────────────────────── -->
   <main id="main-content"></main>
