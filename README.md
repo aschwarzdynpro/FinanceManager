@@ -1,6 +1,6 @@
 # Finance Manager – Web App
 
-Statische Web-App zur Verwaltung monatlicher Einnahmen und Ausgabenkategorien mit Jahreszielen. Optimiert für iPad, läuft auf jedem Browser.
+Statische Web-App zur Verwaltung monatlicher Einnahmen und Ausgabenkategorien mit Jahreszielen. Optimiert für Smartphone und iPad, läuft auf jedem Browser.
 
 ## Features
 
@@ -12,6 +12,7 @@ Statische Web-App zur Verwaltung monatlicher Einnahmen und Ausgabenkategorien mi
   - 💹 Aktien
 - **Jahresziele** – Setze Jahresziele pro Kategorie und verfolge den Fortschritt
 - **Dashboard** – Jahresübersicht mit Balkendiagramm und Fortschrittsanzeigen
+- **Mobil optimiert** – Off-Canvas-Navigation mit Backdrop, große Touch-Flächen, Safe-Area-Support (Notch), kein iOS-Zoom beim Tippen, `100dvh`-Layout
 - **Datenspeicherung** – Lokal im Browser via `localStorage`, keine Cloud nötig
 
 ## Deployment via GitHub Pages

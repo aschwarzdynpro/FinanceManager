@@ -1,6 +1,11 @@
 /* ── Reset & Variables ─────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+button, .sidebar-item, .icon-btn, select {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
 :root {
   --bg:          #f2f4f7;
   --surface:     #ffffff;
@@ -22,7 +27,9 @@ body {
   background: var(--bg);
   color: var(--text);
   height: 100vh;
+  height: 100dvh; /* dynamic viewport height: avoids cut-off under mobile browser chrome */
   overflow: hidden;
+  -webkit-text-size-adjust: 100%;
 }
 
 /* ── Layout ──────────────────────────────────────────────────────────────────  */
@@ -31,6 +38,7 @@ body {
   grid-template-columns: var(--sidebar-w) 1fr;
   grid-template-rows: auto 1fr;
   height: 100vh;
+  height: 100dvh;
   transition: grid-template-columns var(--transition);
 }
 
@@ -44,8 +52,9 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 0 20px;
-  height: 56px;
+  padding: 0 max(20px, env(safe-area-inset-right)) 0 max(20px, env(safe-area-inset-left));
+  height: calc(56px + env(safe-area-inset-top));
+  padding-top: env(safe-area-inset-top);
   background: var(--sidebar-bg);
   border-bottom: 1px solid #2d3748;
   z-index: 10;
@@ -111,6 +120,9 @@ body {
 }
 
 #sidebar.collapsed { width: 0; overflow: hidden; }
+
+/* Backdrop behind the off-canvas sidebar (mobile only; toggled via #app.sidebar-open) */
+#sidebar-backdrop { display: none; }
 
 #sidebar-list {
   list-style: none;
@@ -663,40 +675,88 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
 
-/* ── Responsive (iPad portrait / smaller screens) ───────────────────────────  */
+/* ── Responsive (iPad portrait / phones — off-canvas sidebar) ───────────────  */
 @media (max-width: 768px) {
   #app {
-    grid-template-columns: 0 1fr;
+    grid-template-columns: 1fr;
   }
 
-  #app.sidebar-open {
-    grid-template-columns: var(--sidebar-w) 1fr;
-  }
-
+  /* Off-canvas sidebar: slide in over the content instead of resizing the grid */
   #sidebar {
     position: fixed;
-    top: 56px;
+    top: calc(56px + env(safe-area-inset-top));
     left: 0;
     bottom: 0;
-    width: 0;
-    z-index: 50;
-    transition: width var(--transition);
+    width: var(--sidebar-w);
+    max-width: 84vw;
+    z-index: 60;
+    transform: translateX(-100%);
+    transition: transform var(--transition);
+    padding-bottom: env(safe-area-inset-bottom);
   }
+  #sidebar.collapsed { width: var(--sidebar-w); } /* desktop collapse class is a no-op here */
 
   #app.sidebar-open #sidebar {
-    width: var(--sidebar-w);
-    box-shadow: 4px 0 20px rgba(0,0,0,.3);
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0,0,0,.35);
   }
 
-  #app.sidebar-collapsed #sidebar { width: 0; }
+  /* Tap-to-dismiss backdrop */
+  #app.sidebar-open #sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: calc(56px + env(safe-area-inset-top)) 0 0 0;
+    background: rgba(0,0,0,.45);
+    z-index: 55;
+  }
 
-  #main-content { padding: 16px; }
+  #main-content {
+    padding: 16px;
+    padding-bottom: max(16px, env(safe-area-inset-bottom));
+  }
 
+  .view-header h1 { font-size: 1.35rem; }
+
+  .card-grid { grid-template-columns: 1fr; }
   .allocations-grid { grid-template-columns: 1fr; }
   .alloc-fields { grid-template-columns: 1fr 1fr; }
 
-  .income-input { width: 140px; font-size: 1.1rem; }
+  .income-input { flex: 1; width: auto; min-width: 0; font-size: 1.2rem; }
 
-  .summary-banner, .summary-footer { padding: 14px; }
-  .summary-value { font-size: .95rem; }
+  /* Prevent iOS from auto-zooming when focusing inputs (needs >=16px) */
+  .alloc-input, .goal-input, .income-input, .template-input,
+  .cat-label-input, .modal select, #year-select, .modal input[type="text"] {
+    font-size: 16px;
+  }
+
+  /* Comfortable tap targets (Apple HIG ~44px) */
+  .header-toggle { padding: 10px; font-size: 1.35rem; }
+  .btn { padding: 11px 18px; }
+  .sidebar-item { padding: 13px 16px; }
+  .btn-save-cat { padding: 10px 14px; }
+  .cat-delete-btn { padding: 8px; font-size: 1.35rem; }
+
+  .summary-banner, .summary-footer { padding: 14px 12px; }
+  .summary-value { font-size: 1rem; }
+  .summary-label { font-size: .65rem; }
+  .summary-divider { margin: 0 4px; }
+
+  /* Category settings: keep icon + name on top, controls wrap below */
+  .cat-row { flex-wrap: wrap; }
+  .cat-label-input { flex: 1 1 60%; min-width: 0; }
+}
+
+/* ── Small phones (portrait) ────────────────────────────────────────────────  */
+@media (max-width: 460px) {
+  #header { gap: 8px; padding-left: max(12px, env(safe-area-inset-left)); padding-right: max(12px, env(safe-area-inset-right)); }
+  #header h1 { font-size: .95rem; }
+  .btn-add-month { padding: 8px 10px; font-size: .8rem; }
+  .btn-add-month .add-month-label { display: none; }
+  #year-select { padding: 7px 8px; }
+
+  .alloc-fields { grid-template-columns: 1fr; }
+
+  .modal { padding: 20px; }
+  .modal-grid { grid-template-columns: 1fr; }
+  .icon-picker-grid { grid-template-columns: repeat(6, 1fr); }
 }
